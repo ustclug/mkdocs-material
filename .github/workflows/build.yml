@@ -26,9 +26,6 @@ on:
     tags:
       - "*"
   pull_request:
-  release:
-    types:
-      - published
 
 env:
   NODE_VERSION: 24.x
@@ -126,7 +123,7 @@ jobs:
           path: dist/*.whl
 
   release:
-    if: github.event_name == 'release'
+    if: github.event_name == 'push' && github.ref_type == 'tag'
     needs:
       - npm-build
       - npm-check
@@ -149,9 +146,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
-          gh release upload "${{ github.event.release.tag_name }}"
+          gh release create "${{ github.ref_name }}"
           dist/*.whl dist/SHA256SUMS
-          --clobber
+          --generate-notes
+          --title "${{ github.ref_name }}"
 
   docker:
     # Keep container checks on branches and pull requests, but skip tag builds.
