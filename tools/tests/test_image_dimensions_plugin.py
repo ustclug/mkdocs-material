@@ -1,0 +1,83 @@
+import tempfile
+import unittest
+
+from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
+
+from PIL import Image
+
+from material.plugins.image_dimensions.plugin import ImageDimensionsPlugin
+
+
+class ImageDimensionsPluginTest(unittest.TestCase):
+
+    def setUp(self):
+        self.temporary_directory = tempfile.TemporaryDirectory()
+        self.docs_dir = Path(self.temporary_directory.name)
+        (self.docs_dir / "images").mkdir()
+        Image.new("RGB", (640, 360)).save(
+            self.docs_dir / "images/example.png"
+        )
+        self.config = SimpleNamespace(docs_dir = str(self.docs_dir))
+        self.plugin = ImageDimensionsPlugin()
+        self.plugin.load_config({})
+
+    def tearDown(self):
+        self.temporary_directory.cleanup()
+
+    def render(self, html, page_url = "guide/example/"):
+        page = SimpleNamespace(file = SimpleNamespace(url = page_url))
+        return self.plugin.on_page_content(
+            html, page = page, config = self.config
+        )
+
+    def test_adds_intrinsic_dimensions(self):
+        html = self.render(
+            '<p><img alt="Example" '
+            'src="../../images/example.png#only-light" /></p>'
+        )
+        self.assertIn('width="640"', html)
+        self.assertIn('height="360"', html)
+        self.assertNotIn("aspect-ratio", html)
+
+    def test_preserves_single_dimension_and_style(self):
+        html = self.render(
+            '<img src="../../images/example.png" width="320" '
+            'style="border: 0">'
+        )
+        self.assertIn('width="320"', html)
+        self.assertNotIn('height=', html)
+        self.assertIn('style="border: 0; aspect-ratio: 16 / 9"', html)
+
+    def test_preserves_complete_author_dimensions(self):
+        original = (
+            '<img src="../../images/example.png" '
+            'width="320" height="180">'
+        )
+        self.assertEqual(self.render(original), original)
+
+    def test_skips_remote_and_missing_images(self):
+        remote = '<img src="https://example.com/image.png">'
+        missing = '<img src="../../images/missing.png">'
+
+        with patch.dict("os.environ", { "DEBUG": "1" }):
+            with self.assertLogs(
+                "mkdocs.material.image_dimensions", level = "INFO"
+            ) as logs:
+                self.assertEqual(self.render(remote), remote)
+        self.assertIn("https://example.com/image.png", logs.output[0])
+        self.assertEqual(self.render(missing), missing)
+
+    def test_reads_svg_view_box(self):
+        (self.docs_dir / "images/example.svg").write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg" '
+            'viewBox="0 0 300 200"></svg>', encoding = "utf-8"
+        )
+        html = self.render('<img src="../../images/example.svg">')
+        self.assertIn('width="300"', html)
+        self.assertIn('height="200"', html)
+
+
+if __name__ == "__main__":
+    unittest.main()
