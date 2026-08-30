@@ -132,6 +132,11 @@ $admonitions: (
     border-start-start-radius: px2rem(2px);
     border-start-end-radius: px2rem(2px);
 
+    // Keep permalinks next to admonition titles
+    > .headerlink {
+      display: inline;
+    }
+
     // Adjust spacing for title-only admonitions
     html &:last-child {
       margin-bottom: 0;

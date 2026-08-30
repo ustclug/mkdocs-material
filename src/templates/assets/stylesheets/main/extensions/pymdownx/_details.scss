@@ -76,6 +76,20 @@
     border-start-start-radius: px2rem(2px);
     border-start-end-radius: px2rem(2px);
 
+    // Keep permalinks next to details titles without intercepting toggles
+    > .headerlink {
+      display: inline;
+      pointer-events: none;
+    }
+
+    &:hover > .headerlink,
+    > .headerlink:focus,
+    details:target & > .headerlink,
+    details.admonition-anchor-target & > .headerlink {
+      pointer-events: auto;
+      opacity: 1;
+    }
+
     // Show outline for keyboard devices
     &.focus-visible {
       outline-color: var(--md-accent-fg-color);

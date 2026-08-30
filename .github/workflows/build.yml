@@ -116,6 +116,11 @@ jobs:
       - name: Build Python package
         run: python -m build
 
+      - name: Test Python extensions
+        run: |
+          pip install dist/*.whl
+          python -m unittest discover -s tools/tests -p "test_*.py"
+
       - name: Publish Python package
         if: github.event_name == 'release'
         uses: pypa/gh-action-pypi-publish@release/v1

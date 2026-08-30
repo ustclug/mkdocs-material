@@ -26,8 +26,11 @@ import {
   defer,
   filter,
   finalize,
+  fromEvent,
+  ignoreElements,
   map,
   merge,
+  mergeWith,
   tap
 } from "rxjs"
 
@@ -127,9 +130,33 @@ export function mountDetails(
         el.scrollIntoView()
     })
 
+    /* Keep an anchored details block targeted after its summary is toggled */
+    const summary = el.querySelector(":scope > summary")!
+    const target$ = fromEvent<MouseEvent>(summary, "click")
+      .pipe(
+        filter(ev => {
+          const target = ev.target
+          return el.id !== "" && target instanceof Element &&
+            !target.closest("a, button, input, select, textarea")
+        }),
+        tap(() => {
+          for (const details of Array.from(document.querySelectorAll(
+            "details.admonition-anchor-target"
+          )))
+            details.classList.remove("admonition-anchor-target")
+
+          const url = new URL(location.href)
+          url.hash = el.id
+          history.replaceState(history.state, "", url)
+          el.classList.add("admonition-anchor-target")
+        }),
+        ignoreElements()
+      )
+
     /* Create and return component */
     return watchDetails(el, options)
       .pipe(
+        mergeWith(target$),
         tap(state => push$.next(state)),
         finalize(() => push$.complete()),
         map(state => ({ ref: el, ...state }))
