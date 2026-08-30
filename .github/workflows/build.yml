@@ -88,7 +88,9 @@ jobs:
         run: npm install
 
       - name: Check project
-        run: npm run check
+        run: |
+          npm test
+          npm run check
 
   python:
     runs-on: ubuntu-latest

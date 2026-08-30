@@ -37,7 +37,7 @@ import {
   SearchQueryTerms,
   getSearchQueryTerms,
   parseSearchQuery,
-  segment,
+  segmentSearchQuery,
   transformSearchQuery
 } from "../query"
 
@@ -208,8 +208,7 @@ export class Search {
 
     // Experimental Chinese segmentation
     query = query.replace(/\p{sc=Han}+/gu, value => {
-      return [...segment(value, this.index.invertedIndex)]
-        .join("* ")
+      return segmentSearchQuery(value, this.index.invertedIndex)
     })
 
     // @todo: move segmenter (above) into transformSearchQuery

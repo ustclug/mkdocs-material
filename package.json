@@ -37,6 +37,7 @@
     "fix:style": "run-p fix:style:*",
     "fix:style:ts": "eslint --cache \"src/**/*.ts\" --fix",
     "start": "ts-node -T tools/build --verbose --all --dirty --watch",
+    "test": "node --test --require ts-node/register tools/tests/**/*.test.ts",
     "upgrade": "run-s upgrade:*",
     "upgrade:bump": "ncu --upgrade --filterVersion \"/^\\^/\"",
     "upgrade:install": "npm install"
