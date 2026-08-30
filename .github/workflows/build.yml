@@ -39,7 +39,6 @@ jobs:
   npm-build:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -67,7 +66,6 @@ jobs:
   npm-check:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -94,9 +92,6 @@ jobs:
 
   python:
     runs-on: ubuntu-latest
-    environment: pypi
-    permissions:
-      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -111,24 +106,54 @@ jobs:
             requirements.txt
 
       - name: Set up Python dependencies
-        run: pip install --upgrade build twine
+        run: pip install --upgrade build
 
       - name: Build Python package
-        run: python -m build
+        run: python -m build --wheel
 
       - name: Test Python extensions
         run: |
           pip install dist/*.whl
           python -m unittest discover -s tools/tests -p "test_*.py"
 
-      - name: Publish Python package
-        if: github.event_name == 'release'
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Upload Python package
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package
+          path: dist/*.whl
+
+  release:
+    if: github.event_name == 'release'
+    needs:
+      - npm-build
+      - npm-check
+      - python
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Python package
+        uses: actions/download-artifact@v5
+        with:
+          name: python-package
+          path: dist
+
+      - name: Generate checksums
+        working-directory: dist
+        run: sha256sum *.whl > SHA256SUMS
+
+      - name: Publish GitHub release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload "${{ github.event.release.tag_name }}"
+          dist/*.whl dist/SHA256SUMS
+          --clobber
 
   docker:
+    if: github.event_name != 'release'
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v5
 
@@ -180,7 +205,7 @@ jobs:
       - name: Check Docker image
         working-directory: /tmp
         env:
-          REPO_FULL_NAME: '${{ github.event.repository.full_name }}'
+          REPO_FULL_NAME: "${{ github.event.repository.full_name }}"
         run: |
           docker run --rm -i -v ${PWD}:/docs ${REPO_FULL_NAME,,}:${{ steps.meta.outputs.version }} new .
           docker run --rm -i -v ${PWD}:/docs ${REPO_FULL_NAME,,}:${{ steps.meta.outputs.version }} build
