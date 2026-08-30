@@ -22,6 +22,7 @@ FROM python:3.11-alpine3.21 AS build
 
 # Build-time flags
 ARG WITH_PLUGINS=true
+ARG SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
 
 # Environment variables
 ENV PACKAGES=/usr/local/lib/python3.11/site-packages
