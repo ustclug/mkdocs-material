@@ -149,6 +149,58 @@ function countOccurrences(value: string, term: string): number {
 }
 
 /**
+ * Extract a simple multi-term phrase from a query
+ *
+ * @param query - Search query
+ *
+ * @returns Normalized phrase, if any
+ */
+function getPhraseQuery(query: string): string | undefined {
+  const phrase = query
+    .replace(/"/g, "")
+    .trim()
+    .replace(/\s+/g, " ")
+
+  return /^[\p{L}\p{N}_-]+(?: [\p{L}\p{N}_-]+)+$/u.test(phrase)
+    ? phrase.toLowerCase()
+    : undefined
+}
+
+/**
+ * Compute the exact phrase-match boost
+ *
+ * @param doc - Search document
+ * @param phrase - Search phrase
+ *
+ * @returns Phrase-match boost
+ */
+function getPhraseMatchBoost(
+  doc: SearchDocument, phrase?: string
+): number {
+  if (typeof phrase === "undefined")
+    return 0
+
+  let matches = 0
+  const values = [
+    doc.title,
+    doc.text,
+    doc.tags?.join(" ") || ""
+  ]
+
+  for (const value of values)
+    matches += countOccurrences(
+      value
+        .replace(/<[^>]*>/g, " ")
+        .replace(/[\s\u200b]+/g, " ")
+        .toLowerCase(),
+      phrase
+    )
+
+  /* Prevent repeated occurrences from overwhelming all other signals */
+  return Math.min(matches, 10)
+}
+
+/**
  * Compute the exact compound-match boost
  *
  * @param doc - Search document
@@ -323,6 +375,7 @@ export class Search {
    */
   public search(query: string): SearchResult {
     const compounds = getCompoundQueryTerms(query)
+    const phrase = getPhraseQuery(query)
 
     // Experimental Chinese segmentation
     query = query.replace(/\p{sc=Han}+/gu, value => {
@@ -367,6 +420,7 @@ export class Search {
 
           /* Count exact compound matches before extracting teasers */
           const compound = getCompoundMatchBoost(doc, compounds)
+          const exact = getPhraseMatchBoost(doc, phrase)
 
           /* Highlight matches in fields */
           for (const field of this.index.fields) {
@@ -402,7 +456,8 @@ export class Search {
           /* Append item */
           item.push({
             ...doc,
-            score: score * (1 + boost ** 2) * (1 + compound),
+            score: score * (1 + boost ** 2) *
+              (1 + compound) * (1 + exact),
             terms
           })
         }

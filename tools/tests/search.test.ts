@@ -122,3 +122,46 @@ void test("searches terms after applying the search pipeline", () => {
   assert.equal(group[0].location, "docs/dev/vcs/git/#relative")
   assert.match(group[0].text, /（<mark>Relative<\/mark>/)
 })
+
+void test("prioritizes an exact phrase over a partial title match", () => {
+  const search = new Search({
+    config: {
+      lang: ["en"],
+      separator: "[\\s\\-]+",
+      pipeline: ["stemmer"],
+      fields: {
+        title: { boost: 1e3 },
+        text: { boost: 1e0 },
+        tags: { boost: 1e6 }
+      }
+    },
+    docs: [
+      {
+        location: "docs/storage/",
+        title: "Storage",
+        text: ""
+      },
+      {
+        location: "docs/storage/#xfs",
+        title: "XFS",
+        text: "A file system"
+      },
+      {
+        location: "docs/desktop/",
+        title: "Desktop",
+        text: ""
+      },
+      {
+        location: "docs/desktop/#x",
+        title: "X",
+        text: "The X server manages displays"
+      }
+    ],
+    options: { suggest: false }
+  })
+
+  assert.equal(
+    search.search("x server").items[0][0].location,
+    "docs/desktop/#x"
+  )
+})
