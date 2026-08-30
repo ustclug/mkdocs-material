@@ -29,11 +29,16 @@
  *
  * @param value - String value
  *
- * @returns String term(s)
+ * @returns String term(s), optionally with wildcard control
  */
+interface VisitorTerm {
+  value: string                        /* Term value */
+  wildcard?: boolean                   /* Whether to append wildcard */
+}
+
 type VisitorFn = (
   value: string
-) => string | string[]
+) => string | VisitorTerm | (string | VisitorTerm)[]
 
 /* ----------------------------------------------------------------------------
  * Functions
@@ -89,11 +94,22 @@ export function transform(
 
     /* => 4 */
     .split(/\s+/g)
-      .reduce((prev, term) => {
+      .reduce<VisitorTerm[]>((prev, term) => {
         const next = fn(term)
-        return [...prev, ...Array.isArray(next) ? next : [next]]
-      }, [] as string[])
-      .map(term => /([~^]$)/.test(term) ? `${term}1` : term)
-      .map(term => /(^[+-]|[~^]\d+$)/.test(term) ? term : `${term}*`)
+        const values = Array.isArray(next) ? next : [next]
+        return [...prev, ...values.map(value => (
+          typeof value === "string"
+            ? { value }
+            : value
+        ))]
+      }, [] as VisitorTerm[])
+      .map(({ value, wildcard = true }) => {
+        if (/([~^]$)/.test(value))
+          value = `${value}1`
+
+        return wildcard && !/(^[+-]|[~^]\d+$)/.test(value)
+          ? `${value}*`
+          : value
+      })
       .join(" ")
 }

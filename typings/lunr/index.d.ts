@@ -40,6 +40,7 @@ declare global {
     interface Index {
       invertedIndex: Record<string, unknown>
       fields: Fields[]
+      pipeline: Pipeline
     }
 
     /**

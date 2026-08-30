@@ -330,7 +330,7 @@ export class Search {
     })
 
     // @todo: move segmenter (above) into transformSearchQuery
-    query = transformSearchQuery(query)
+    query = transformSearchQuery(query, this.index.pipeline)
     if (!query)
       return { items: [] }
 

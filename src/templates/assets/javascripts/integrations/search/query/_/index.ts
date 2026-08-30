@@ -53,16 +53,20 @@ export type SearchQueryTerms = Record<string, boolean>
  * function to each term, preserving markup like `+` and `-` modifiers.
  *
  * @param query - Search query
+ * @param pipeline - Search pipeline used to normalize terms
  *
  * @returns Search query
  */
 export function transformSearchQuery(
-  query: string
+  query: string, pipeline?: lunr.Pipeline
 ): string {
 
   /* Split query terms with tokenizer */
   return transform(query, part => {
-    const terms: string[] = []
+    const terms: {
+      value: string
+      wildcard: boolean
+    }[] = []
 
     /* Initialize lexer and analyze part */
     const lexer = new lunr.QueryLexer(part)
@@ -85,11 +89,27 @@ export function transformSearchQuery(
         /* Tokenize term */
         case "TERM":
           split(term, lunr.tokenizer.separator, (...range) => {
-            terms.push([
-              part.slice(0, start),
-              term.slice(...range),
-              part.slice(end)
-            ].join(""))
+            const value = term.slice(...range)
+            const normalized = pipeline
+              ? pipeline.runString(value.toLowerCase())
+              : [value]
+
+            for (const token of normalized)
+              terms.push({
+                value: [
+                  part.slice(0, start),
+                  token,
+                  part.slice(end)
+                ].join(""),
+
+                /*
+                 * Lunr disables the search pipeline for wildcard queries.
+                 * When normalization changed a term, use the normalized term
+                 * as an exact query instead of appending an incompatible
+                 * wildcard. Explicit wildcards retain their semantics.
+                 */
+                wildcard: !value.includes("*") && token === value.toLowerCase()
+              })
           })
       }
 

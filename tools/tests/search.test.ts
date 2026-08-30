@@ -65,6 +65,11 @@ const createSearch = (
         location: "docs/dev/vcs/git/#git-hooks",
         title: "Git Hook",
         text: "pre-commit runs before each commit; pre-commit is configurable"
+      },
+      {
+        location: "docs/dev/vcs/git/#relative",
+        title: "LDAP Basics",
+        text: "（Relative Distinguished Name，RDN）"
       }
     ],
     options: { suggest: false }
@@ -110,4 +115,10 @@ void test("does not require stop words in a hyphenated term", () => {
   })
 
   assert.equal(search.search("end-to-end").items[0][0].location, "docs/#hooks")
+})
+
+void test("searches terms after applying the search pipeline", () => {
+  const [group] = createSearch().search("Relative").items
+  assert.equal(group[0].location, "docs/dev/vcs/git/#relative")
+  assert.match(group[0].text, /（<mark>Relative<\/mark>/)
 })

@@ -121,11 +121,33 @@ export function tokenize(
             )
 
             /* Add token with position */
+            const value = section.slice(index, until)
             tokens.push(new lunr.Token(
-              section.slice(index, until).toLowerCase(), {
+              value.toLowerCase(), {
                 position: block << 20 | table[block].length - 1
               }
             ))
+
+            /* Add an alias without wrapping punctuation */
+            const leading = value.match(/^[^\p{L}\p{M}\p{N}_]+/u)?.[0]
+              .length || 0
+            const trailing = value.match(/[^\p{L}\p{M}\p{N}_]+$/u)?.[0]
+              .length || 0
+            if (leading || trailing) {
+              const length = value.length - leading - trailing
+              if (length > 0) {
+                table[block].push(
+                  start + index + leading << 12 |
+                  length                  <<  2 |
+                  type
+                )
+                tokens.push(new lunr.Token(
+                  value.slice(leading, -trailing || undefined).toLowerCase(), {
+                    position: block << 20 | table[block].length - 1
+                  }
+                ))
+              }
+            }
           })
       }
     })
