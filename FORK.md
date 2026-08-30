@@ -10,6 +10,8 @@ or a project explicitly enables an added extension or plugin.
 
 - Chinese queries use complete, required prefix terms instead of ambiguous
   one-character OR matches.
+- Hyphenated technical terms require all components and prioritize complete
+  matches, so queries such as `pre-commit` don't get dominated by `commit`.
 - Code blocks receive unique copy targets when several blocks share an
   anchored ancestor.
 - `material.extensions.admonition` adds opt-in IDs and permalinks to

@@ -68,6 +68,117 @@ export interface SearchResult {
  * ------------------------------------------------------------------------- */
 
 /**
+ * Extract hyphenated query terms
+ *
+ * A hyphen is a separator for Chinese search, but it also commonly joins
+ * words in technical terms (e.g. `pre-commit`). Lunr searches the individual
+ * parts as optional terms, which makes a match for just one part sufficient.
+ * Keep the parts around so we can require all of them and give an exact
+ * compound match a small relevance boost later on.
+ *
+ * @param query - Search query
+ *
+ * @returns Hyphenated query terms
+ */
+function getCompoundQueryTerms(query: string): string[][] {
+  const compounds: string[][] = []
+
+  /* Analyze whitespace-separated query parts */
+  for (const part of query.replace(/"/g, "").split(/\s+/g)) {
+    if (!part || part.startsWith("-"))
+      continue
+
+    /* Strip a presence modifier, field selector and query modifiers */
+    const term = part
+      .replace(/^\+/, "")
+      .replace(/^(?:title|text|tags):/, "")
+      .replace(/[~^*].*$/, "")
+
+    /* Restrict matching to simple hyphenated words, not URLs or options */
+    const terms = term.toLowerCase().split("-")
+    if (
+      terms.length > 1 &&
+      terms.every(value => /^[\p{L}\p{N}_]+$/u.test(value))
+    )
+      compounds.push(terms)
+  }
+
+  return compounds
+}
+
+/**
+ * Determine whether a query term matched
+ *
+ * @param terms - Search query terms
+ * @param term - Term to check
+ * @param stopWordFilter - Whether stop words are filtered
+ *
+ * @returns Whether the term matched
+ */
+function hasMatchingTerm(
+  terms: SearchQueryTerms, term: string, stopWordFilter: boolean
+): boolean {
+  if (Object.entries(terms).some(([value, match]) =>
+    match && (value === term || value.startsWith(term))
+  ))
+    return true
+
+  /* Stop words are intentionally omitted from the index */
+  return stopWordFilter &&
+    typeof lunr.stopWordFilter !== "undefined" &&
+    typeof lunr.stopWordFilter(new lunr.Token(term, {})) === "undefined"
+}
+
+/**
+ * Count occurrences of a string
+ *
+ * @param value - Value to search
+ * @param term - Term to find
+ *
+ * @returns Number of occurrences
+ */
+function countOccurrences(value: string, term: string): number {
+  let count = 0
+  let index = 0
+
+  while ((index = value.indexOf(term, index)) !== -1) {
+    count++
+    index += term.length
+  }
+  return count
+}
+
+/**
+ * Compute the exact compound-match boost
+ *
+ * @param doc - Search document
+ * @param compounds - Hyphenated query terms
+ *
+ * @returns Compound-match boost
+ */
+function getCompoundMatchBoost(
+  doc: SearchDocument, compounds: string[][]
+): number {
+  let matches = 0
+  const values = [
+    doc.title,
+    doc.text,
+    doc.tags?.join(" ") || ""
+  ]
+
+  for (const compound of compounds) {
+    const term = compound.join("-")
+    for (const value of values)
+      matches += countOccurrences(
+        value.replace(/<[^>]*>/g, "").toLowerCase(), term
+      )
+  }
+
+  /* Prevent repeated occurrences from overwhelming all other signals */
+  return Math.min(matches, 10)
+}
+
+/**
  * Create field extractor factory
  *
  * @param table - Position table map
@@ -135,12 +246,18 @@ export class Search {
   protected table: Map<string, PositionTable>
 
   /**
+   * Whether stop words are removed from the index
+   */
+  protected stopWordFilter: boolean
+
+  /**
    * Create the search integration
    *
    * @param data - Search index
    */
   public constructor({ config, docs, options }: SearchIndex) {
     const field = extractor(this.table = new Map())
+    this.stopWordFilter = config.pipeline.includes("stopWordFilter")
 
     /* Set up document map and options */
     this.map = setupSearchDocumentMap(docs)
@@ -205,6 +322,7 @@ export class Search {
    * @returns Search result
    */
   public search(query: string): SearchResult {
+    const compounds = getCompoundQueryTerms(query)
 
     // Experimental Chinese segmentation
     query = query.replace(/\p{sc=Han}+/gu, value => {
@@ -241,6 +359,15 @@ export class Search {
             Object.keys(matchData.metadata)
           )
 
+          /* Require all parts of a hyphenated technical term */
+          if (compounds.some(compound => compound.some(term =>
+            !hasMatchingTerm(terms, term, this.stopWordFilter)
+          )))
+            return item
+
+          /* Count exact compound matches before extracting teasers */
+          const compound = getCompoundMatchBoost(doc, compounds)
+
           /* Highlight matches in fields */
           for (const field of this.index.fields) {
             if (typeof doc[field] === "undefined")
@@ -275,7 +402,7 @@ export class Search {
           /* Append item */
           item.push({
             ...doc,
-            score: score * (1 + boost ** 2),
+            score: score * (1 + boost ** 2) * (1 + compound),
             terms
           })
         }
