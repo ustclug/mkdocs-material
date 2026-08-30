@@ -21,6 +21,7 @@
 [build-system]
 requires = [
   "hatchling",
+  "hatch-vcs",
   "hatch-requirements-txt",
   "hatch-nodejs-version>=0.3.0",
   # Needed for "Framework :: MkDocs"
@@ -92,7 +93,8 @@ Issues = "https://github.com/squidfunk/mkdocs-material/issues"
 material = "material.templates"
 
 [tool.hatch.version]
-source = "nodejs"
+source = "vcs"
+tag-pattern = "^(?P<version>\\d+\\.\\d+\\.\\d+(?:\\+[0-9A-Za-z.-]+)?)$"
 
 [tool.hatch.metadata.hooks.nodejs]
 fields = ["license", "description", "authors", "keywords", "urls"]
