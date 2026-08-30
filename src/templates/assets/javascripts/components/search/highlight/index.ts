@@ -85,10 +85,11 @@ export function mountSearchHiglight(
       )
   ])
     .pipe(
-      map(([index, url]) => setupSearchHighlighter(index.config)(
-        url.searchParams.get("h")!
-      )),
-      map(fn => {
+      map(([index, url]) => ({
+        fn: setupSearchHighlighter(index.config)(url.searchParams.get("h")!),
+        url
+      })),
+      map(({ fn, url }) => {
         const nodes = new Map<ChildNode, string>()
 
         /* Traverse text nodes and collect matches */
@@ -106,6 +107,34 @@ export function mountSearchHiglight(
         for (const [node, text] of nodes) {
           const { childNodes } = h("span", null, text)
           node.replaceWith(...Array.from(childNodes))
+        }
+
+        /* Scroll from the section anchor to its first actual match */
+        const marks = Array.from(
+          el.querySelectorAll<HTMLElement>("mark[data-md-highlight]")
+        )
+        if (marks.length) {
+          let target: HTMLElement | null = null
+          if (url.hash) {
+            try {
+              target = document.getElementById(
+                decodeURIComponent(url.hash.slice(1))
+              )
+            } catch {
+              target = document.getElementById(url.hash.slice(1))
+            }
+          }
+
+          const mark = !target
+            ? marks[0]
+            : marks.find(candidate => (
+                target!.contains(candidate) ||
+                !!(target!.compareDocumentPosition(candidate) &
+                  Node.DOCUMENT_POSITION_FOLLOWING)
+              ))
+
+          if (mark)
+            requestAnimationFrame(() => mark.scrollIntoView({ block: "center" }))
         }
 
         /* Return component */

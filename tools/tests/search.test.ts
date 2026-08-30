@@ -121,6 +121,38 @@ void test("searches terms after applying the search pipeline", () => {
   const [group] = createSearch().search("Relative").items
   assert.equal(group[0].location, "docs/dev/vcs/git/#relative")
   assert.match(group[0].text, /（<mark>Relative<\/mark>/)
+  assert.deepEqual(group[0].terms, { relative: true })
+})
+
+void test("preserves original terms for page highlighting", () => {
+  const search = new Search({
+    config: {
+      lang: ["en"],
+      separator: "[\\s\\-]+",
+      pipeline: ["stemmer"],
+      fields: {
+        title: { boost: 1e3 },
+        text: { boost: 1e0 },
+        tags: { boost: 1e6 }
+      }
+    },
+    docs: [
+      {
+        location: "docs/storage/",
+        title: "Storage",
+        text: ""
+      },
+      {
+        location: "docs/storage/#xfs",
+        title: "XFS",
+        text: "XFS is a file system"
+      }
+    ],
+    options: { suggest: false }
+  })
+
+  const [group] = search.search("XFS").items
+  assert.deepEqual(group[0].terms, { xfs: true })
 })
 
 void test("prioritizes an exact phrase over a partial title match", () => {

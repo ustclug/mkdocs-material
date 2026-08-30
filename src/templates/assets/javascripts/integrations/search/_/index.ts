@@ -377,6 +377,12 @@ export class Search {
     const compounds = getCompoundQueryTerms(query)
     const phrase = getPhraseQuery(query)
 
+    /* Preserve query terms before the search pipeline applies stemming */
+    const source = parseSearchQuery(transformSearchQuery(query))
+      .filter(clause => (
+        clause.presence !== lunr.Query.presence.PROHIBITED
+      ))
+
     // Experimental Chinese segmentation
     query = query.replace(/\p{sc=Han}+/gu, value => {
       return segmentSearchQuery(value, this.index.invertedIndex)
@@ -392,6 +398,7 @@ export class Search {
       .filter(clause => (
         clause.presence !== lunr.Query.presence.PROHIBITED
       ))
+    const display = source.length === clauses.length ? source : clauses
 
     /* Perform search and post-process results */
     const groups = this.index.search(query)
@@ -421,6 +428,14 @@ export class Search {
           /* Count exact compound matches before extracting teasers */
           const compound = getCompoundMatchBoost(doc, compounds)
           const exact = getPhraseMatchBoost(doc, phrase)
+
+          /* Restore original terms for display and page highlighting */
+          const displayTerms = Object.fromEntries(Object.entries(terms).map(
+            ([term, match]) => {
+              const index = clauses.findIndex(clause => clause.term === term)
+              return [display[index]?.term || term, match]
+            }
+          ))
 
           /* Highlight matches in fields */
           for (const field of this.index.fields) {
@@ -458,7 +473,7 @@ export class Search {
             ...doc,
             score: score * (1 + boost ** 2) *
               (1 + compound) * (1 + exact),
-            terms
+            terms: displayTerms
           })
         }
         return item
