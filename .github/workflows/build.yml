@@ -23,6 +23,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "*"
   pull_request:
   release:
     types:
@@ -152,7 +154,10 @@ jobs:
           --clobber
 
   docker:
-    if: github.event_name != 'release'
+    # Keep container checks on branches and pull requests, but skip tag builds.
+    if: >-
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/master')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
