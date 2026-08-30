@@ -230,8 +230,19 @@ export function mountCodeBlock(
     // generate a new one. This is necessary to allow for authors to define
     // unique ids for code blocks - see https://t.ly/q7UEq
     const unique = parent.closest("[id]")
-    const id = unique ? unique.id : sequence++
-    parent.id = `__code_${id}`
+    const anchorId = unique ? unique.id : sequence++
+    let id = `${anchorId}`
+    let parentId = `__code_${id}`
+
+    /* Keep generated IDs unique when code blocks share an anchored ancestor */
+    while (
+      document.getElementById(parentId) &&
+      document.getElementById(parentId) !== parent
+    ) {
+      id = `${anchorId}_${sequence++}`
+      parentId = `__code_${id}`
+    }
+    parent.id = parentId
 
     /* Handle code annotations and highlights */
     const content$: Array<Observable<Component<CodeBlock>>> = []
