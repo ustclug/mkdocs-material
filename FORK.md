@@ -16,6 +16,8 @@ or a project explicitly enables an added extension or plugin.
   traditional admonitions and details blocks.
 - `image-dimensions` adds opt-in intrinsic dimensions to local raster and SVG
   images. It requires Pillow, which is available through the `imaging` extra.
+- Google Fonts stylesheets load asynchronously, so an unavailable font service
+  doesn't block the initial render and the system fallback remains usable.
 
 ## Installation
 

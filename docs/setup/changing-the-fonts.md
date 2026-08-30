@@ -45,6 +45,11 @@ theme:
 
 The typeface will be loaded in 400.
 
+Google Fonts are loaded asynchronously. If the stylesheet or font service is
+slow or unavailable, the page renders immediately with the system fallback
+and remains usable. Browsers without JavaScript load the stylesheet through a
+`noscript` fallback.
+
   [Roboto Mono]: https://fonts.google.com/specimen/Roboto+Mono
 
 ### Autoloading
