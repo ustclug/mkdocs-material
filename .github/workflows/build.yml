@@ -113,7 +113,8 @@ jobs:
 
       - name: Test Python extensions
         run: |
-          pip install dist/*.whl
+          wheel=$(find dist -maxdepth 1 -name '*.whl' -print -quit)
+          pip install "${wheel}[imaging]"
           python -m unittest discover -s tools/tests -p "test_*.py"
 
       - name: Upload Python package
