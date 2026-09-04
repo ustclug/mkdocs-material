@@ -9,3 +9,4 @@ class AnchorValidationConfig(Config):
     ignore_ascii_headings = Type(bool, default = False)
     require_admonition_anchors = Type(bool, default = False)
     ignored_admonition_titles = ListOfItems(Type(str), default = [])
+    check_duplicate_anchors = Type(bool, default = False)

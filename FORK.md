@@ -158,6 +158,7 @@ plugins:
       required_heading_levels: [2, 3, 4, 5, 6]
       ignore_ascii_headings: true
       require_admonition_anchors: true
+      check_duplicate_anchors: true
       ignored_admonition_titles:
         - Main authors
         - Work in progress
@@ -168,6 +169,8 @@ automatically. Heading validation runs after `attr_list` has applied explicit
 IDs and before `toc` generates automatic IDs. When `ignore_ascii_headings` is
 enabled, headings consisting entirely of ASCII characters and containing at
 least one English letter are exempt; mixed-language headings are not.
+`check_duplicate_anchors` checks the final HTML and reports IDs that occur more
+than once on the same page.
 
 Enable intrinsic image dimensions as a plugin:
 

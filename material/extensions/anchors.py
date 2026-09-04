@@ -35,6 +35,12 @@ def get_findings():
     return _findings
 
 
+def add_findings(page, findings):
+    """Add findings for a source page."""
+
+    _findings.setdefault(page, []).extend(findings)
+
+
 def _plain_text(md, element):
     """Extract readable text, including stashed inline HTML such as code."""
 
@@ -98,7 +104,7 @@ class ExplicitAnchorTreeprocessor(Treeprocessor):
 
         if missing:
             if self.collect:
-                _findings.setdefault(_page or "<unknown>", []).extend(missing)
+                add_findings(_page or "<unknown>", missing)
                 return root
             details = "\n".join(f"- {item}" for item in missing)
             raise ValueError(f"Explicit anchors are required:\n{details}")
