@@ -37,7 +37,9 @@ def is_mkdocs():
 if is_mkdocs() and not os.getenv("NO_MKDOCS_2_WARNING"):
     print(
         "\n"
-        f"{Fore.RED} │  ⚠  Warning from the Material for MkDocs team{Style.RESET_ALL}\n"
+        f"{Fore.RED} │  ⚠  USTCLUG Material for MkDocs fork{Style.RESET_ALL}\n"
+        f"{Fore.RED} │{Style.RESET_ALL}\n"
+        f"{Fore.RED} │{Style.RESET_ALL}  This build uses USTCLUG's maintenance fork of Material for MkDocs.\n"
         f"{Fore.RED} │{Style.RESET_ALL}\n"
         f"{Fore.RED} │{Style.RESET_ALL}  MkDocs 2.0, the underlying framework of Material for MkDocs,\n"
         f"{Fore.RED} │{Style.RESET_ALL}  will introduce backward-incompatible changes, including:\n"
@@ -48,7 +50,7 @@ if is_mkdocs() and not os.getenv("NO_MKDOCS_2_WARNING"):
         f"{Fore.RED} │  × {Style.RESET_ALL}Closed contribution model – community members can't report bugs\n"
         f"{Fore.RED} │  × {Style.RESET_ALL}Currently unlicensed – unsuitable for production use\n"
         f"{Fore.RED} │{Style.RESET_ALL}\n"
-        f"{Fore.RED} │{Style.RESET_ALL}  Our full analysis:\n"
+        f"{Fore.RED} │{Style.RESET_ALL}  Analysis from the upstream Material project:\n"
         f"{Fore.RED} │{Style.RESET_ALL}\n"
         f"{Fore.RED} │{Style.RESET_ALL}  \033[4mhttps://squidfunk.github.io/mkdocs-material/blog/2026/02/18/mkdocs-2.0/{Style.RESET_ALL}\n"
         f"{Style.RESET_ALL}",

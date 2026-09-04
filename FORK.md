@@ -147,6 +147,28 @@ The traditional syntax accepts an ID after the optional title:
     Content
 ```
 
+The `material/anchor-validation` plugin can require explicit anchors on
+selected heading levels and admonitions. Admonitions with an exact plain-text
+title match can be exempted. It reports all violations across the site before
+failing the build:
+
+```yaml
+plugins:
+  - material/anchor-validation:
+      required_heading_levels: [2, 3, 4, 5, 6]
+      ignore_ascii_headings: true
+      require_admonition_anchors: true
+      ignored_admonition_titles:
+        - Main authors
+        - Work in progress
+```
+
+Both checks are disabled by default. The plugin enables its Markdown extension
+automatically. Heading validation runs after `attr_list` has applied explicit
+IDs and before `toc` generates automatic IDs. When `ignore_ascii_headings` is
+enabled, headings consisting entirely of ASCII characters and containing at
+least one English letter are exempt; mixed-language headings are not.
+
 Enable intrinsic image dimensions as a plugin:
 
 ```yaml
