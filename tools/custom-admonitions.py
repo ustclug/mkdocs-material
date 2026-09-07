@@ -24,6 +24,24 @@ CUSTOM_ADMONITIONS = {
         "icon": "material/heart",
         "rgb": [222, 49, 99],
     },
+
+    # For USTCLUG Documentations
+    "homepage-workflow": {
+        "icon": "fontawesome/solid/wrench",
+        "rgb": (241, 79, 33),
+    },
+    "homepage-infrastructure": {
+        "icon": "material/toy-brick",
+        "rgb": (126, 185, 0),
+    },
+    "homepage-services": {
+        "icon": "fontawesome/solid/certificate",
+        "rgb": (0, 163, 238),
+    },
+    "homepage-faq": {
+        "icon": "fontawesome/solid/circle-question",
+        "rgb": (254, 184, 0),
+    },
 }
 
 # ensure we're in project root directory

@@ -18,7 +18,7 @@ $color-codes: red, darkred, orangered, green, limegreen, gray; // stylelint-disa
 .md-typeset {
   font-feature-settings: "kern" 0;
 
-  [id="references"],
+  #references, // stylelint-disable-line selector-max-id
   .no-underline {
     padding-bottom: 0;
     margin-bottom: 0;

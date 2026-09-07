@@ -157,8 +157,10 @@ jobs:
           --title "${{ github.ref_name }}"
 
   docker:
-    if: github.event_name != 'release'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -182,7 +184,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ github.token }}
 
       - name: Generate Docker tags and labels
         id: meta
