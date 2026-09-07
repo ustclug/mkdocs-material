@@ -62,8 +62,7 @@ for name, data in CUSTOM_ADMONITIONS.items():
 
     &::before {{
       background-color: rgb({rgb_s});
-      -webkit-mask-image: var({varname});
-              mask-image: var({varname});
+      mask-image: var({varname});
     }}
   }}""".lstrip("\n")
     typeset_defs.append(s)

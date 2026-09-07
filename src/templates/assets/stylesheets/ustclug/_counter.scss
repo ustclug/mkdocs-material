@@ -19,31 +19,31 @@ h5 {
 }
 
 h2::before {
-  counter-increment: h2;
+  margin-right: px2rem(16px);
   content: counter(h2);
-  margin-right: 0.8rem;
+  counter-increment: h2;
 }
 
 h3::before {
-  counter-increment: h3;
+  margin-right: px2rem(10px);
   content: counter(h2) "." counter(h3);
-  margin-right: 0.5rem;
+  counter-increment: h3;
 }
 
 h4::before {
-  counter-increment: h4;
+  margin-right: px2rem(10px);
   content: counter(h2) "." counter(h3) "." counter(h4);
-  margin-right: 0.5rem;
+  counter-increment: h4;
 }
 
 h5::before {
-  counter-increment: h5;
+  margin-right: px2rem(6px);
   content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5);
-  margin-right: 0.3rem;
+  counter-increment: h5;
 }
 
 h6::before {
-  counter-increment: h6;
+  margin-right: px2rem(6px);
   content: counter(h2) "." counter(h3) "." counter(h4) "." counter(h5) "." counter(h6);
-  margin-right: 0.3rem;
+  counter-increment: h6;
 }
