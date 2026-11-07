@@ -35,10 +35,10 @@ permissions:
 jobs:
   documentation:
     name: Build documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           sparse-checkout: |
@@ -48,7 +48,7 @@ jobs:
             src/templates/partials/languages
 
       - name: Set up Python runtime
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -57,7 +57,7 @@ jobs:
             requirements.txt
 
       - name: Set up build cache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           key: mkdocs-material-${{ hashfiles('.cache/**') }}
           path: ~/.cache
@@ -69,23 +69,22 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install mkdocs-material
-          pip install .[recommended,git,imaging]
+          pip install "mkdocs-material[recommended,git,imaging]" mkdocs-redirects
+          # Avoid shadowing the installed package with the sparse checkout.
+          rm -f material/__init__.py
 
-      - name: Install Insiders build
+      - name: Install documentation overrides
         if: github.event.repository.fork == false
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           git clone --depth 1 https://${GH_TOKEN}@github.com/squidfunk/mkdocs-material-overrides.git
-          pip install -e mkdocs-material-overrides
-          cp mkdocs-material-overrides/mkdocs.yml mkdocs.yml
-          rm -rf material
-          cp -r mkdocs-material-overrides/material material
+          rm -rf material/overrides
+          cp -r mkdocs-material-overrides/material/overrides material/overrides
 
       - name: Build documentation
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           GOOGLE_ANALYTICS_KEY: ${{ secrets.GOOGLE_ANALYTICS_KEY }}
           DISABLE_MKDOCS_2_WARNING: true
         run: |
@@ -99,15 +98,18 @@ jobs:
           done
 
       - name: Upload to GitHub Pages
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: site
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
 
       - name: Save build cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           key: mkdocs-material-${{ hashfiles('.cache/**') }}
           path: ~/.cache

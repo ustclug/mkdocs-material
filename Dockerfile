@@ -18,7 +18,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-FROM python:3.11-alpine3.21 AS build
+FROM python:3.11-alpine3.24 AS build
 
 # Build-time flags
 ARG WITH_PLUGINS=true
@@ -59,7 +59,7 @@ RUN \
     libffi-dev \
     musl-dev \
 && \
-  pip install --no-cache-dir --upgrade pip \
+  pip install --no-cache-dir --upgrade pip "setuptools>=84.1.0" \
 && \
   pip install --no-cache-dir . \
 && \

@@ -1,6 +1,6 @@
 {
   "name": "mkdocs-material",
-  "version": "9.7.7",
+  "version": "9.8.1",
   "description": "Documentation that simply works",
   "keywords": [
     "mkdocs",
@@ -70,7 +70,7 @@
     "@typescript-eslint/parser": "^8.52.0",
     "autoprefixer": "^10.4.23",
     "chokidar": "^5.0.0",
-    "cssnano": "5.1.0",
+    "cssnano": "^9.9.0",
     "esbuild": "^0.28.1",
     "eslint": "8.57.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
@@ -78,7 +78,6 @@
     "eslint-plugin-jsdoc": "50.6.11",
     "eslint-plugin-no-null": "^1.0.2",
     "github-types": "^1.0.0",
-    "gitlab": "^14.2.2",
     "google-fonts-complete": "jonathantneal/google-fonts-complete",
     "html-minifier-terser": "^7.2.0",
     "material-design-color": "^2.3.2",
@@ -91,7 +90,7 @@
     "postcss-logical": "5.0.4",
     "postcss-pseudo-is": "^0.3.0",
     "preact": "^10.28.2",
-    "rimraf": "^6.1.2",
+    "rimraf": "^6.1.4",
     "sass": "^1.97.2",
     "simple-icons": "^16.4.0",
     "stylelint": "^16.26.1",
@@ -103,6 +102,11 @@
     "tiny-glob": "^0.2.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.5"
+    }
   },
   "engines": {
     "node": ">= 18"

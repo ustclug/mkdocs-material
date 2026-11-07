@@ -36,18 +36,18 @@ permissions:
 
 jobs:
   npm-build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Node.js runtime
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Set up Node.js dependency cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: cache
         with:
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -63,18 +63,18 @@ jobs:
           git diff --name-only
 
   npm-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Node.js runtime
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Set up Node.js dependency cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: cache
         with:
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
@@ -90,10 +90,10 @@ jobs:
           npm run check
 
   python:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -130,12 +130,12 @@ jobs:
       - npm-build
       - npm-check
       - python
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Download Python package
         uses: actions/download-artifact@v5
@@ -157,27 +157,27 @@ jobs:
           --title "${{ github.ref_name }}"
 
   docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to DockerHub
         if: github.event_name == 'push' && github.ref_type == 'tag'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
 
       - name: Login to GitHub Container Registry
         if: github.event_name == 'push' && github.ref_type == 'tag'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -185,7 +185,7 @@ jobs:
 
       - name: Generate Docker tags and labels
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: |
             ${{ github.event.repository.full_name }}
@@ -200,7 +200,7 @@ jobs:
             latest=auto
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           load: true
@@ -216,7 +216,7 @@ jobs:
           docker run --rm -i -v ${PWD}:/docs ${REPO_FULL_NAME,,}:${{ steps.meta.outputs.version }} build
 
       - name: Publish Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
